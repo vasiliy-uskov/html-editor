@@ -1,0 +1,30 @@
+{
+  "name": "html-editor",
+  "version": "1.0.0",
+  "description": "Form to edit html text",
+  "main": "index.js",
+  "scripts": {
+    "watch": "npx webpack --watch --config dev.config.js",
+    "build": "npx webpack --config prod.config.js",
+    "test": "npx jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasiliy-uskov/html-editor.git"
+  },
+  "author": "Vasiliy Uskov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vasiliy-uskov/html-editor/issues"
+  },
+  "homepage": "https://github.com/vasiliy-uskov/html-editor#readme",
+  "devDependencies": {
+    "@types/jest": "^24.0.12",
+    "jest": "^24.7.1",
+    "ts-jest": "^24.0.2",
+    "ts-loader": "^5.4.4",
+    "typescript": "^3.4.5",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1"
+  }
+}
