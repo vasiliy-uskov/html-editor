@@ -1,7 +1,7 @@
 const {resolve} = require("path")
 
 module.exports = {
-	mode: "production",
+	mode: "development",
 	entry: './src/app.ts',
 	watchOptions: {
 		ignored: [/node_modules/, /js/],
