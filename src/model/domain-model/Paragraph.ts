@@ -13,8 +13,8 @@ export class Paragraph {
 	public readonly id: UUId;
 }
 
-export class ReadonlyParagraph {
-	public readonly content: ReadonlyArray<UUId> = [];
-	public readonly styles?: ParagraphStyles = new ParagraphStyles();
-	public readonly id: UUId = new UUId();
+export interface ReadonlyParagraph {
+	readonly content: ReadonlyArray<UUId>;
+	readonly styles?: ParagraphStyles;
+	readonly id: UUId;
 }

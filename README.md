@@ -1,2 +1,2 @@
 # html-editor
-Simple html editor
+Simple richtext editor

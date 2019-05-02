@@ -20,9 +20,9 @@ export class List {
 	public readonly id: UUId;
 }
 
-export class ReadonlyList {
-	public readonly items: ReadonlyArray<UUId> = [];
-	public readonly listDecoration: ListDecoration = ListDecoration.circles;
-	public readonly styles?: TextStyles = new TextStyles();
-	public readonly id: UUId = new UUId();
+export interface ReadonlyList {
+	readonly items: ReadonlyArray<UUId>;
+	readonly listDecoration: ListDecoration;
+	readonly styles?: TextStyles;
+	readonly id: UUId;
 }

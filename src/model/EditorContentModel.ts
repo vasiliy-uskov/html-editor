@@ -5,7 +5,7 @@ import {Header} from "./domain-model/Header";
 import {Image} from "./domain-model/Image";
 import {Text} from "./domain-model/Text";
 import {belongCollection, UUId} from "../utils/UUId";
-import {filterArray, removeFromArray} from "../utils/utils";
+import {filterArray} from "../utils/utils";
 import {ParagraphStyles, TextStyles} from "./domain-model/Styles";
 import {Size} from "../utils/Size";
 
@@ -15,13 +15,19 @@ export class EditorContentModel {
 	}
 
 	addToDocument(...ids: Array<UUId>) {
-		this._removeFromParent(...ids);
+		if (belongCollection(ids, this._document.id)) {
+			throw new Error(`Can not add collection to itself`);
+		}
+		this._checkForParent(ids);
 		this._document.content.push(...ids);
 	}
 
 	removeFromDocument(...ids: Array<UUId>) {
-		ids.forEach(id => {
-			removeFromArray(this._document.content, id);
+		if (belongCollection(ids, this._document.id)) {
+			throw new Error(`Can not remove collection from itself`);
+		}
+		ids.forEach(idToDelete => {
+			filterArray(this._document.content, id => idToDelete.equal(id))
 		})
 	}
 
@@ -29,7 +35,7 @@ export class EditorContentModel {
 		return this._getElementById(this._images, id);
 	}
 
-	removeImage(ids: Array<UUId>) {
+	removeImages(ids: Array<UUId>) {
 		this._removeFromParent(...ids);
 		filterArray(this._images, (image) => belongCollection(ids, image.id))
 	}
@@ -44,14 +50,14 @@ export class EditorContentModel {
 		return this._getElementById(this._headers, id);
 	}
 
-	removeHeader(ids: Array<UUId>) {
+	removeHeaders(ids: Array<UUId>) {
 		this._removeFromParent(...ids);
 		filterArray(this._headers, (header) => belongCollection(ids, header.id))
 	}
 
 	createHeader(text: string, level: number, styles?: TextStyles): UUId {
 		const headerObj = new Header(text, level, styles);
-		this._texts.push(headerObj);
+		this._headers.push(headerObj);
 		return headerObj.id
 	}
 
@@ -73,7 +79,6 @@ export class EditorContentModel {
 	getParagraph(id: UUId): (ReadonlyParagraph|undefined) {
 		return this._getElementById(this._paragraphs, id);
 	}
-
 
 	createParagraph(styles?: ParagraphStyles): UUId {
 		const newParagraph = new Paragraph([], styles);
@@ -114,15 +119,38 @@ export class EditorContentModel {
 	}
 
 	addToList(listId: UUId, ...elementsIds: Array<UUId>) {
-		this._addToCollection(this._paragraphs, listId, elementsIds, (list, ids) => {
-			list.content.push(...ids);
+		this._addToCollection(this._lists, listId, elementsIds, (list, ids) => {
+			list.items.push(...ids);
 		})
 	}
 
 	removeFromList(listId: UUId, ...elementsIds: Array<UUId>) {
-		this._removeFromCollection(this._paragraphs, listId, elementsIds, (list, ids) => {
-			filterArray(list.content, id => belongCollection(ids, id));
+		this._removeFromCollection(this._lists, listId, elementsIds, (list, ids) => {
+			filterArray(list.items, id => belongCollection(ids, id));
 		})
+	}
+
+	private _checkForParent(ids: Array<UUId>) {
+		if (ids.some(id => !!this._getParentId(id))) {
+			throw new Error(`Some of elements ${ids.join(', ')} already have an parent`)
+		}
+	}
+
+	private _getParentId(id: UUId): (UUId|null) {
+		for (const list of this._lists) {
+			if (belongCollection(list.items, id)) {
+				return list.id
+			}
+		}
+		for (const paragraph of this._paragraphs) {
+			if (belongCollection(paragraph.content, id)) {
+				return paragraph.id
+			}
+		}
+		if (belongCollection(this._document.content, id)) {
+			return this._document.id;
+		}
+		return null
 	}
 
 	private _addToCollection<T>(
@@ -131,13 +159,13 @@ export class EditorContentModel {
 		elementsIds: Array<UUId>,
 		addToCollection: (collection: T & {id: UUId}, elementsIds: Array<UUId>) => void
 	) {
-		if (elementsIds.includes(collectionId)) {
-			return
+		if (belongCollection(elementsIds, collectionId)) {
+			throw new Error(`Can not add collection to itself`);
 		}
-		const paragraph = this._getElementById(collections, collectionId);
-		if (paragraph) {
-			this._removeFromParent(...elementsIds);
-			addToCollection(paragraph, elementsIds);
+		this._checkForParent(elementsIds);
+		const collection = this._getElementById(collections, collectionId);
+		if (collection) {
+			addToCollection(collection, elementsIds);
 		}
 	}
 
@@ -147,8 +175,8 @@ export class EditorContentModel {
 		elementsIds: Array<UUId>,
 		removeFromCollection: (collection: T & {id: UUId}, elementsIds: Array<UUId>) => void
 	) {
-		if (elementsIds.includes(collectionId)) {
-			return
+		if (belongCollection(elementsIds, collectionId)) {
+			throw new Error(`Can not remove collection from itself`);
 		}
 		const paragraph = this._getElementById(collections, collectionId);
 		if (paragraph) {

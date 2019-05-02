@@ -28,4 +28,7 @@ export function filterArray<T>(arr: Array<T>, predicate: (it: T) => boolean) {
 		}
 		i++;
 	}
+	if (deleteElementsCount) {
+		arr.splice(deleteStartPosition, deleteElementsCount);
+	}
 }
